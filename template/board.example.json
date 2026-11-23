@@ -1,0 +1,55 @@
+{
+  "name": "my-agent-board",
+  "board_root": "ops/tasks",
+  "columns": [
+    { "id": "backlog", "title": "Backlog", "limit": 0 },
+    { "id": "intake", "title": "Intake", "limit": 3 },
+    { "id": "doing", "title": "Doing", "limit": 1 },
+    { "id": "review", "title": "Review", "limit": 2 },
+    { "id": "done", "title": "Done", "limit": 0 }
+  ],
+  "rules": {
+    "one_task_in_doing": true,
+    "review_before_done": true,
+    "redline_blocks_done": true,
+    "log_every_move_to": "ops/logs/board.log"
+  },
+  "tasks": [
+    {
+      "id": "t-001",
+      "title": "Set up the repository skeleton",
+      "column": "done",
+      "owner": "agent/main",
+      "priority": "high",
+      "brief": "Create the folder layout, the build entry point and the readme.",
+      "acceptance": "ops/acceptance-gate.md#sprint-close",
+      "redline": "ops/test-redline.md",
+      "log": "ops/logs/t-001.log",
+      "notes": "Reference task: keep the shape, drop the content."
+    },
+    {
+      "id": "t-002",
+      "title": "Wire the nightly sweep into the scheduler",
+      "column": "intake",
+      "owner": "agent/main",
+      "priority": "medium",
+      "brief": "Register ops/patrol.json so the board is swept without a human prompt.",
+      "acceptance": "ops/acceptance-gate.md#sweep-close",
+      "redline": "ops/test-redline.md",
+      "log": "ops/logs/t-002.log",
+      "notes": "One sweep per day is enough to start."
+    },
+    {
+      "id": "t-003",
+      "title": "Triage the backlog below the fold",
+      "column": "backlog",
+      "owner": "unassigned",
+      "priority": "low",
+      "brief": "Promote, merge or drop the items that have been sitting here.",
+      "acceptance": "ops/acceptance-gate.md#triage-close",
+      "redline": "ops/test-redline.md",
+      "log": "ops/logs/t-003.log",
+      "notes": "Dropping an item is a valid outcome; write the reason in the log."
+    }
+  ]
+}

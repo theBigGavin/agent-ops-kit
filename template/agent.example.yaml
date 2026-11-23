@@ -1,0 +1,56 @@
+# The agent this board belongs to. Copy, edit, commit.
+# The board, the patrol and the heartbeat all point back here.
+
+agent:
+  id: main
+  name: "my-agent"
+  role: "task intake and follow-through"
+  version: 0.1
+
+scope:
+  # Paths the agent may read without asking.
+  reads:
+    - "ops/**"
+    - "src/**"
+    - "tests/**"
+  # Paths the agent may change while a task is in doing.
+  writes:
+    - "src/**"
+    - "tests/**"
+    - "ops/tasks/**"
+    - "ops/logs/**"
+  # Paths the agent may never change on its own.
+  never_write:
+    - "ops/agent.yaml"
+    - "ops/test-redline.md"
+    - "ops/acceptance-gate.md"
+
+limits:
+  max_tasks_in_doing: 1
+  max_turns_per_task: 40
+  max_diff_lines_per_task: 400
+  # A task that hits a limit goes back to intake with a reason, not silently.
+  on_limit_reached: "return to intake and log the reason"
+
+authority:
+  # What the agent may decide alone.
+  may:
+    - "move a task from intake to doing"
+    - "write progress lines to the task log"
+    - "run the redline checks"
+  # What needs a human first.
+  may_not:
+    - "close the acceptance gate"
+    - "delete a task"
+    - "relax a redline"
+    - "push to a shared branch"
+
+handoff:
+  # Where a human picks the work up.
+  board: "ops/board.json"
+  patrol: "ops/patrol.json"
+  heartbeat: "ops/heartbeat.json"
+  gate: "ops/acceptance-gate.md"
+  redline: "ops/test-redline.md"
+  # A human reads the log first. Keep it honest and keep it short.
+  first_thing_a_human_reads: "ops/logs/patrol.log"

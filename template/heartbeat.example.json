@@ -1,0 +1,25 @@
+{
+  "name": "my-agent-heartbeat",
+  "board": "ops/board.json",
+  "log": "ops/logs/heartbeat.log",
+  "report": {
+    "every_minutes": 15,
+    "channel": "ops/logs/heartbeat.log",
+    "include": ["current task id", "column", "last action", "next action", "blockers"]
+  },
+  "staleness": {
+    "task_quiet_minutes": 90,
+    "sweep_quiet_minutes": 1500,
+    "on_task_quiet": "write a stalled line to the log and keep the task in doing",
+    "on_sweep_quiet": "assume the scheduler is dead and say so out loud"
+  },
+  "restart": {
+    "on_boot": "read the board, resume the task sitting in doing, do not start a new one",
+    "orphan_rule": "a task in doing with no heartbeat for two windows goes back to intake"
+  },
+  "rules": {
+    "heartbeat_never_edits_code": true,
+    "missing_heartbeat_is_a_finding": true,
+    "keep_the_last": 500
+  }
+}

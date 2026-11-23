@@ -1,0 +1,125 @@
+#!/usr/bin/env bash
+# agent-ops — bootstrap the agent-ops-kit skeleton into a project directory.
+# Templates live next to this script, in template/. Existing files are skipped.
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")"/.. && pwd)"
+TEMPLATE_DIR="$SCRIPT_DIR/template"
+
+# Entries the initializer drops into a project: "<template file>|<project path>"
+ENTRIES=(
+  "board.example.json|ops/board.json"
+  "patrol.example.json|ops/patrol.json"
+  "heartbeat.example.json|ops/heartbeat.json"
+  "test-redline.md|ops/test-redline.md"
+  "acceptance-gate.md|ops/acceptance-gate.md"
+  "agent.example.yaml|ops/agent.yaml"
+)
+
+# Working directories every task on the board assumes exist.
+DIRS=(
+  "ops/tasks"
+  "ops/logs"
+)
+
+usage() {
+  cat <<'EOF'
+agent-ops — bootstrap the agent-ops-kit skeleton
+
+Usage:
+  bash bin/agent-ops init [target-dir]   Copy the templates into target-dir
+                                         (default: the current directory).
+                                         Idempotent: files that already exist
+                                         are skipped, never overwritten.
+  bash bin/agent-ops help                Show this help.
+
+Examples:
+  bash bin/agent-ops init                # set the skeleton up in .
+  bash bin/agent-ops init ../my-project  # set it up somewhere else
+EOF
+}
+
+next_steps() {
+  cat <<'EOF'
+
+Next steps:
+  1. Edit ops/agent.yaml        — name the agent, its scope and its limits.
+  2. Edit ops/board.json        — list the work you want picked up, per column.
+  3. Edit ops/patrol.json       — set the sweep schedule and what each sweep does.
+  4. Edit ops/heartbeat.json    — set how often the agent reports in, and what a
+                                  stalled run means.
+  5. Read ops/test-redline.md   — the checks a task may never ship past.
+  6. Read ops/acceptance-gate.md— what has to be true before a task moves to done.
+  7. Point a scheduler at ops/patrol.json and let the board run itself.
+EOF
+}
+
+cmd_init() {
+  local target="${1:-.}"
+
+  if [ ! -d "$TEMPLATE_DIR" ]; then
+    printf 'error: template directory not found: %s\n' "$TEMPLATE_DIR" >&2
+    printf 'hint: run this script from inside the agent-ops-kit checkout.\n' >&2
+    exit 1
+  fi
+
+  mkdir -p "$target"
+
+  local entry src rel dest
+  local created=0 skipped=0
+
+  for entry in "${ENTRIES[@]}"; do
+    src="$TEMPLATE_DIR/${entry%%|*}"
+    rel="${entry##*|}"
+    dest="$target/$rel"
+
+    if [ ! -f "$src" ]; then
+      printf 'error: template missing: %s\n' "$src" >&2
+      exit 1
+    fi
+
+    mkdir -p "$(dirname "$dest")"
+    if [ -e "$dest" ]; then
+      printf 'skipped %s (already exists)\n' "$rel"
+      skipped=$((skipped + 1))
+    else
+      cp "$src" "$dest"
+      printf 'created %s\n' "$rel"
+      created=$((created + 1))
+    fi
+  done
+
+  for rel in "${DIRS[@]}"; do
+    if [ -d "$target/$rel" ]; then
+      printf 'skipped %s/ (already exists)\n' "$rel"
+      skipped=$((skipped + 1))
+    else
+      mkdir -p "$target/$rel"
+      printf 'created %s/\n' "$rel"
+      created=$((created + 1))
+    fi
+  done
+
+  printf '\n%s: %d created, %d skipped\n' "$(cd "$target" && pwd)" "$created" "$skipped"
+  next_steps
+}
+
+main() {
+  local cmd="${1:-help}"
+  case "$cmd" in
+    init)
+      shift
+      cmd_init "$@"
+      ;;
+    help | -h | --help)
+      usage
+      ;;
+    *)
+      printf 'error: unknown command: %s\n\n' "$cmd" >&2
+      usage
+      exit 2
+      ;;
+  esac
+}
+
+main "$@"

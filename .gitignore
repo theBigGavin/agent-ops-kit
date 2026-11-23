@@ -1,0 +1,17 @@
+# Runtime state — the board itself is committed, the noise around it is not.
+ops/logs/
+ops/tasks/*.tmp
+*.log
+
+# Local edits to the live config stay local; the .example files are the shared ones.
+ops/board.json.local
+ops/patrol.json.local
+ops/heartbeat.json.local
+ops/agent.yaml.local
+
+# Editor and OS cruft
+.DS_Store
+*.swp
+*~
+.idea/
+.vscode/

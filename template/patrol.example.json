@@ -1,0 +1,39 @@
+{
+  "name": "my-agent-patrol",
+  "board": "ops/board.json",
+  "timezone": "UTC",
+  "log": "ops/logs/patrol.log",
+  "sweeps": [
+    {
+      "id": "morning-intake",
+      "schedule": "07:03 * * * *",
+      "what": "Read the intake column, pick the highest-priority task, move it to doing.",
+      "reads": ["ops/board.json"],
+      "writes": ["ops/logs/patrol.log"],
+      "on_blocked": "leave the task in intake and record the reason"
+    },
+    {
+      "id": "afternoon-progress",
+      "schedule": "0 14:17 * * 1-5",
+      "what": "Walk every task in doing, write a progress line, flag anything with no movement.",
+      "reads": ["ops/board.json", "ops/logs"],
+      "writes": ["ops/logs/patrol.log"],
+      "on_blocked": "move the task to review with a blocker note"
+    },
+    {
+      "id": "evening-close",
+      "schedule": "30 21 * * *",
+      "what": "Run the redline checks, then decide what may move to done.",
+      "reads": ["ops/test-redline.md", "ops/acceptance-gate.md"],
+      "writes": ["ops/logs/patrol.log"],
+      "on_blocked": "nothing moves to done; write the failing check to the log"
+    }
+  ],
+  "rules": {
+    "never_touch": ["ops/agent.yaml", "ops/test-redline.md", "ops/acceptance-gate.md"],
+    "one_sweep_at_a_time": true,
+    "quiet_hours": ["22:00-07:00"],
+    "max_consecutive_failures": 3,
+    "on_repeated_failure": "stop sweeping and ask for a human"
+  }
+}
